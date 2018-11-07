@@ -155,7 +155,22 @@
       "output": "box/{{.Provider}}/{{user `vm_name`}}-{{user `version`}}.box",
       "type": "vagrant",
       "vagrantfile_template": "{{ user `vagrantfile_template` }}"
-    }
+    },
+    {
+      "keep_input_artifact": true,
+      "type" : "vsphere",
+      "cluster" : "{{user `vsphere_cluster`}}",
+      "datacenter" : "{{user `vsphere_datacenter`}}",
+      "datastore" : "{{user `vsphere_datastore`}}",
+      "host" : "{{user `vsphere_host`}}",
+      "password" : "{{user `vsphere_password`}}",
+      "username" : "{{user `vsphere_username`}}",
+      "vm_name" : "{{user `vsphere_vm_name`}}",
+      "vm_network" : "{{user `vsphere_vm_network`}}",
+      "insecure" : "{{user `vsphere_insecure`}}",
+      "disk_mode" : "{{user `vsphere_disk_mode`}}",
+      "only": ["vmware-iso"]
+  }
   ],
   "provisioners": [
     {
