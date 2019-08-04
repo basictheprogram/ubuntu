@@ -45,6 +45,11 @@ echo "==> Clearing last login information"
 >/var/log/wtmp
 >/var/log/btmp
 
+if [ "$PACKER_BUILDER_TYPE" == "amazon-ebs"  ]; then
+    echo "==> Amazon build"
+    exit 0
+fi
+
 # Whiteout /boot
 count=$(df --sync -kP /boot | tail -n1 | awk -F ' ' '{print $4}')
 let count--
