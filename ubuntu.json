@@ -167,8 +167,8 @@
       "communicator": "ssh",
       "ssh_pty": "true",
       "ssh_username": "{{ user `ssh_username` }}",
-      "ssh_keypair_name": "bob-aws",
-      "ssh_private_key_file": "/Users/tanner/.ssh/bob-aws.pem",
+      "ssh_keypair_name": "{{ user `ssh_keypair_name` }}",
+      "ssh_private_key_file": "{{ user `ssh_private_key_file` }}",
       "ssh_agent_auth": true,
       "access_key": "{{ user `aws_access_key` }}",
       "secret_key": "{{ user `aws_secret_key` }}",
@@ -199,6 +199,7 @@
       "shutdown_behavior": "terminate",
       "associate_public_ip_address": true,
       "force_deregister": true,
+      "force_delete_snapshot": true,
       "tags": {
         "OS_Version": "Ubuntu",
         "Release": "Latest",
@@ -207,6 +208,24 @@
         "Product Owner": "{{user `product_owner`}}",
         "Base_AMI_Name": "{{ .SourceAMIName }}",
         "Extra": "{{ .SourceAMITags.TagName }}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      },
+      "run_tags": {
+        "Name": "PackerBuilder-{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      },
+      "run_volume_tags": {
+        "Name": "PackerBuilder-{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      },
+      "snapshot_tags": {
+        "Name": "{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
         "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
       }
     }
@@ -259,26 +278,18 @@
     {
       "type": "ansible",
       "command": "script/ansible.sh",
-      "playbook_file": "playbooks/testing_ami.yml",
+      "playbook_file": "{{ user `playbook_file` }}",
       "user": "{{ user `ssh_username` }}",
-      "host_alias": "dw.aws.comap.com",
-      "groups": [
-        "aws_comap_com",
-        "linux_servers"
-      ],
+      "host_alias": "{{ user `host_alias` }}",
+      "groups": "{{ user `groups` }}",
       "ansible_env_vars": [
         "ANSIBLE_CONFIG=playbooks/comap.com/ansible.cfg",
         "ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3",
         "ANSIBLE_HOST_KEY_CHECKING=False",
-        "ANSIBLE_SSH_PIPELINING=false",
+        "ANSIBLE_SSH_PIPELINING=False",
         "ANSIBLE_SSH_ARGS=-o IdentitiesOnly=yes"
       ],
-      "extra_arguments": [
-        "-u ubuntu",
-        "-v",
-        "--extra-vars",
-        "@host_vars/dw.aws.comap.com/all.yml"
-      ],
+      "extra_arguments": "{{ user `extra_arguments` }}",
       "only": [
         "amazon-ebs"
       ]
