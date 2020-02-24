@@ -175,6 +175,19 @@
       "ami_name": "{{ user `ami_name` }}-{{ isotime \"2006-01-02\" }}",
       "ami_description": "{{ user `ami_description` }}-{{ isotime \"2006-01-02\" }}",
       "region": "{{ user `aws_region` }}",
+      "vpc_filter": {
+        "filters": {
+          "tag:Name": "{{ user `vpc_name` }}",
+          "isDefault": "false"
+        }
+      },
+      "subnet_filter": {
+        "filters": {
+          "tag:Name": "{{ user `subnet_name` }}"
+        },
+        "most_free": true,
+        "random": true
+      },
       "source_ami_filter": {
         "filters": {
           "virtualization-type": "hvm",
