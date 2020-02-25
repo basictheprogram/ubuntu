@@ -88,13 +88,22 @@
       "type": "virtualbox-iso",
       "vboxmanage": [
         [
-          "modifyvm", "{{.Name}}", "--nictype1", "virtio"
+          "modifyvm",
+          "{{.Name}}",
+          "--nictype1",
+          "virtio"
         ],
         [
-          "modifyvm", "{{.Name}}", "--memory", "{{ user `memory` }}"
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "{{ user `memory` }}"
         ],
         [
-          "modifyvm", "{{.Name}}", "--cpus", "{{ user `cpus` }}"
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "{{ user `cpus` }}"
         ]
       ],
       "virtualbox_version_file": ".vbox_version",
@@ -134,10 +143,16 @@
       "parallels_tools_flavor": "lin",
       "prlctl": [
         [
-          "set", "{{.Name}}", "--memsize", "{{ user `memory` }}"
+          "set",
+          "{{.Name}}",
+          "--memsize",
+          "{{ user `memory` }}"
         ],
         [
-          "set", "{{.Name}}", "--cpus", "{{ user `cpus` }}"
+          "set",
+          "{{.Name}}",
+          "--cpus",
+          "{{ user `cpus` }}"
         ]
       ],
       "prlctl_version_file": ".prlctl_version",
@@ -147,6 +162,85 @@
       "ssh_wait_timeout": "10000s",
       "type": "parallels-iso",
       "vm_name": "{{ user `vm_name` }}"
+    },
+    {
+      "communicator": "ssh",
+      "ssh_pty": "true",
+      "ssh_username": "{{ user `ssh_username` }}",
+      "ssh_keypair_name": "{{ user `ssh_keypair_name` }}",
+      "ssh_private_key_file": "{{ user `ssh_private_key_file` }}",
+      "ssh_agent_auth": true,
+      "access_key": "{{ user `aws_access_key` }}",
+      "secret_key": "{{ user `aws_secret_key` }}",
+      "ami_name": "{{ user `ami_name` }}-{{ isotime \"2006-01-02\" }}",
+      "ami_description": "{{ user `ami_description` }}-{{ isotime \"2006-01-02\" }}",
+      "region": "{{ user `aws_region` }}",
+      "vpc_filter": {
+        "filters": {
+          "tag:Name": "{{ user `vpc_name` }}",
+          "isDefault": "false"
+        }
+      },
+      "subnet_filter": {
+        "filters": {
+          "tag:Name": "{{ user `subnet_name` }}"
+        },
+        "most_free": true,
+        "random": true
+      },
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "{{user `source_ami_filter_name`}}",
+          "root-device-type": "ebs"
+        },
+        "owners": [
+          "{{user `source_ami_filter_owners`}}"
+        ],
+        "most_recent": true
+      },
+      "instance_type": "{{ user `aws_instance_type` }}",
+      "type": "amazon-ebs",
+      "ami_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_type": "gp2",
+          "volume_size": "{{user `root_volume_size`}}",
+          "delete_on_termination": true
+        }
+      ],
+      "shutdown_behavior": "terminate",
+      "associate_public_ip_address": true,
+      "force_deregister": true,
+      "force_delete_snapshot": true,
+      "tags": {
+        "OS_Version": "Ubuntu",
+        "Release": "Latest",
+        "Name": "{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
+        "Base_AMI_Name": "{{ .SourceAMIName }}",
+        "Extra": "{{ .SourceAMITags.TagName }}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      },
+      "run_tags": {
+        "Name": "PackerBuilder-{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      },
+      "run_volume_tags": {
+        "Name": "PackerBuilder-{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      },
+      "snapshot_tags": {
+        "Name": "{{user `dest_ami_name_prefix`}}-{{isotime \"2006-01-02T03_04_05\"}}",
+        "Owner": "{{user `owner_email`}}",
+        "Product Owner": "{{user `product_owner`}}",
+        "Build Time": "{{isotime \"2006-01-02T03_04_05\"}}"
+      }
     }
   ],
   "post-processors": [
@@ -203,13 +297,36 @@
         "script/cleanup.sh"
       ],
       "type": "shell",
-      "expect_disconnect": "true"
+      "expect_disconnect": "true",
+      "only": [
+        "vmware-iso",
+        "virtualbox-iso"
+      ]
+    },
+    {
+      "type": "ansible",
+      "command": "script/ansible.sh",
+      "playbook_file": "{{ user `playbook_file` }}",
+      "user": "{{ user `ssh_username` }}",
+      "host_alias": "{{ user `host_alias` }}",
+      "groups": "{{ user `groups` }}",
+      "ansible_env_vars": [
+        "ANSIBLE_CONFIG=playbooks/comap.com/ansible.cfg",
+        "ANSIBLE_PYTHON_INTERPRETER=/usr/bin/python3",
+        "ANSIBLE_HOST_KEY_CHECKING=False",
+        "ANSIBLE_SSH_PIPELINING=False",
+        "ANSIBLE_SSH_ARGS=-o IdentitiesOnly=yes"
+      ],
+      "extra_arguments": "{{ user `extra_arguments` }}",
+      "only": [
+        "amazon-ebs"
+      ]
     }
   ],
   "variables": {
     "boot_command_prefix": "<esc><esc><enter><wait>",
     "cleanup_pause": "",
-    "cpus": "1",
+    "cpus": "",
     "custom_script": "custom-script.sh",
     "desktop": "false",
     "disk_size": "65536",
@@ -217,17 +334,17 @@
     "headless": "false",
     "http_proxy": "{{env `http_proxy`}}",
     "https_proxy": "{{env `https_proxy`}}",
-    "install_vagrant_key": "true",
+    "install_vagrant_key": "",
     "iso_checksum": "a5b0ea5918f850124f3d72ef4b85bda82f0fcd02ec721be19c1a6952791c8ee8",
     "iso_checksum_type": "sha256",
-    "iso_name": "ubuntu-18.04.1-server-amd64.iso",
+    "iso_name": "",
     "iso_path": "/Volumes/Storage/software/ubuntu",
-    "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/18.04/release/ubuntu-18.04.1-server-amd64.iso",
+    "iso_url": "",
     "locale": "en_US",
-    "memory": "512",
+    "memory": "",
     "no_proxy": "{{env `no_proxy`}}",
     "parallels_guest_os_type": "ubuntu",
-    "preseed" : "preseed.cfg",
+    "preseed": "preseed.cfg",
     "rsync_proxy": "{{env `rsync_proxy`}}",
     "hostname": "vagrant",
     "ssh_fullname": "vagrant",

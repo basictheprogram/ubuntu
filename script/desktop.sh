@@ -1,7 +1,12 @@
 #!/bin/bash
 
+if [[ $PACKER_BUILDER_TYPE =~ amazon-ebs ]]; then
+    echo "==> Amazon EBS build. Exiting desktop.sh"
+    exit 
+fi
+
 if [[ ! "$DESKTOP" =~ ^(true|yes|on|1|TRUE|YES|ON])$ ]]; then
-  exit
+    exit
 fi
 
 SSH_USER=${SSH_USERNAME:-vagrant}
