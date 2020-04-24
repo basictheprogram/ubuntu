@@ -6,6 +6,7 @@ if [[ $PACKER_BUILDER_TYPE =~ amazon-ebs ]]; then
 fi
 
 if [[ ! "$DESKTOP" =~ ^(true|yes|on|1|TRUE|YES|ON])$ ]]; then
+    echo "==> Not a desktop build. Exiting desktop.sh"
     exit
 fi
 
