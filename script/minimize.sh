@@ -26,7 +26,7 @@ apt-get -y purge build-essential git > /dev/null
 echo "==> Removing default system Ruby"
 apt-get -y purge ruby ri > /dev/null
 echo "==> Removing default system Python"
-apt-get -y purge python-dbus python-smartpm python-twisted-core libiw30 python-twisted-bin libdbus-glib-1-2 python-pexpect python-pycurl python-serial python-gobject python-pam python-openssl > /dev/null
+apt-get -y purge python-dbus libiw30 libdbus-glib-1-2 python-pexpect python-pycurl python-gobject python-pam python-openssl > /dev/null
 echo "==> Removing X11 libraries"
 apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6 > /dev/null
 echo "==> Removing obsolete networking components"
@@ -34,13 +34,23 @@ apt-get -y purge ppp pppconfig pppoeconf > /dev/null
 echo "==> Removing other oddities"
 apt-get -y purge popularity-contest installation-report landscape-common wireless-tools wpasupplicant > /dev/null
 
+# Need bc to make the code snippets below work
+apt-get -y install bc > /dev/null 
+
+if [ `echo "$DISTRIB_RELEASE < 20.04" | bc` ]; then
+  apt-get -y purge python-smartpm python-twisted-core python-twisted-bin python-serial > /dev/null
+fi
+
 # ubuntu-serverguide is not in 18.04
 # doc, from default system Ruby not in 18.04
-# libnl1, from default system Pythong not in 18.04
+# libnl1, from default system Python not in 18.04
 #
-if [ ! $DISTRIB_RELEASE == 18.04 ]; then
+if [ `echo "$DISTRIB_RELEASE < 18.04" | bc` ]; then
   apt-get -y purge ubuntu-serverguide doc libnl1 libffi5 > /dev/null
 fi
+
+apt-get -y purge bc > /dev/null
+echo "==> Removing bc"
 
 # Clean up the apt cache
 {
